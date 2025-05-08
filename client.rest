@@ -1,0 +1,43 @@
+@baseUrl = http://localhost:3000
+
+###
+#messages
+GET {{baseUrl}}/messages
+###
+#oneMessage
+GET {{baseUrl}}/messages/321/
+###
+#createMessage
+POST {{baseUrl}}/messages/
+Content-Type: application/json
+
+{
+    "message":"Este é o recado que eu estou enviado",
+    "new key":"outro valor"
+}
+###
+#updateMessage
+PATCH {{baseUrl}}/messages/1/
+Content-Type: application/json
+
+{
+    "message":"Este é o recado que eu estou enviado Editado"
+}
+###
+#removeMessage
+DELETE  {{baseUrl}}/messages/1/
+Content-Type: application/json
+
+{
+    "message":"Este é o recado que eu estou enviado Editado"
+}
+
+### AppControllerGetHello
+
+#@name AppController
+//GET {{baseUrl}}
+
+###ExemploDeRota
+
+#@name ExemploDeRota
+//GET {{baseUrl}}/exemplo
