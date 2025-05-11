@@ -4,54 +4,94 @@ import { UpdateMessageDto } from './dto/update-message.dto';
 import { Message } from './entities/message.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { PeopleService } from 'src/people/people.service';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { skip } from 'node:test';
 
 @Injectable()
 export class MessagesService {
   constructor(
     @InjectRepository(Message)
     private readonly messageRepository: Repository<Message>,
+    private readonly peopleService: PeopleService,
   ) {}
 
-  throwNotFoundError() {
+  throwNotFoundError(): never {
     throw new NotFoundException('Message not found');
   }
 
-  async findAll() {
-    return await this.messageRepository.find();
+  async findAll(paginationDto?: PaginationDto) {
+    const { limit = 10, offset = 0 } = paginationDto ?? {};
+
+    return await this.messageRepository.find({
+      take: limit,
+      skip: offset,
+      relations: ['from', 'to'],
+      order: {
+        id: 'desc',
+      },
+      select: {
+        from: {
+          id: true,
+          name: true,
+        },
+        to: {
+          id: true,
+          name: true,
+        },
+      },
+    });
   }
 
   async findOne(id: number) {
     const message = await this.messageRepository.findOne({
       where: { id },
+      relations: ['from', 'to'],
+      order: {
+        id: 'desc',
+      },
+      select: {
+        from: {
+          id: true,
+          name: true,
+        },
+        to: {
+          id: true,
+          name: true,
+        },
+      },
     });
     if (message) return message;
     this.throwNotFoundError();
   }
 
   async create(createMessageDto: CreateMessageDto) {
+    const { fromId, toId } = createMessageDto;
+    const from = await this.peopleService.findOne(fromId);
+    const to = await this.peopleService.findOne(toId);
     const newMessage = {
-      ...createMessageDto,
+      text: createMessageDto.text,
+      from,
+      to,
       read: false,
       date: new Date(),
     };
-    const savedMessage = await this.messageRepository.create(newMessage);
-    return this.messageRepository.save(savedMessage);
+    const createdMessage = await this.messageRepository.create(newMessage);
+    await this.messageRepository.save(createdMessage);
+    return {
+      ...createdMessage,
+      from: { id: createdMessage.from.id },
+      to: { id: createdMessage.to.id },
+    };
   }
 
   async update(id: number, updateMessageDto: UpdateMessageDto) {
-    const partialUpdateMessageDto = {
-      read: updateMessageDto.read,
-      text: updateMessageDto.text,
-    };
-    const updatedMessage = await this.messageRepository.preload({
-      id,
-      ...partialUpdateMessageDto,
-    });
-    if (!updatedMessage) {
-      return this.throwNotFoundError();
-    }
-    await this.messageRepository.save(updatedMessage);
-    return updatedMessage;
+    const message = await this.findOne(id);
+    message.text = updateMessageDto?.text ?? message?.text;
+    message.read = updateMessageDto.read ?? message?.read;
+
+    await this.messageRepository.save(message);
+    return message;
   }
 
   async remove(id: number) {

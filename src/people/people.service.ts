@@ -8,7 +8,6 @@ import { UpdatePersonDto } from './dto/update-person.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Person } from './entities/person.entity';
 import { Repository } from 'typeorm';
-import { NotFoundError } from 'rxjs';
 
 @Injectable()
 export class PeopleService {
@@ -44,14 +43,20 @@ export class PeopleService {
     return people;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} person`;
+  async findOne(id: number) {
+    const person = await this.personRepository.findOneBy({
+      id,
+    });
+    if (!person) {
+      throw new NotFoundException('Person not found');
+    }
+    return person;
   }
 
   async update(id: number, updatePersonDto: UpdatePersonDto) {
     const personForUpdate = {
       name: updatePersonDto?.name,
-      passwordHash: updatePersonDto?.password
+      passwordHash: updatePersonDto?.password,
     };
     const updatedPerson = await this.personRepository.preload({
       id,
