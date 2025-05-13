@@ -9,16 +9,13 @@ import {
   Patch,
   Post,
   Query,
-  UseInterceptors,
 } from '@nestjs/common';
 import { MessagesService } from './messages.service';
 import { UpdateMessageDto } from './dto/update-message.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { AddHeaderInterceptor } from 'src/common/interceptors/add-header.interceptor';
 
 @Controller('messages')
-@UseInterceptors(AddHeaderInterceptor)
 export class MessagesController {
   constructor(private readonly messagesService: MessagesService) {}
 
