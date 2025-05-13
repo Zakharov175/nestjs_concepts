@@ -1,4 +1,12 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Person } from 'src/people/entities/person.entity';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class Message {
@@ -7,12 +15,6 @@ export class Message {
 
   @Column({ type: 'varchar', length: 255 })
   text: string;
-
-  @Column({ type: 'varchar', length: 255 })
-  from: string;
-
-  @Column({ type: 'varchar', length: 255 })
-  to: string;
 
   @Column({ default: false })
   read: boolean;
@@ -25,4 +27,12 @@ export class Message {
 
   @CreateDateColumn()
   updatedAt?: Date;
+
+  @ManyToOne(() => Person, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  @JoinColumn({ name: 'from' })
+  from: Person;
+
+  @ManyToOne(() => Person, { onDelete: 'CASCADE', onUpdate: 'CASCADE' })
+  @JoinColumn({ name: 'to' })
+  to: Person;
 }

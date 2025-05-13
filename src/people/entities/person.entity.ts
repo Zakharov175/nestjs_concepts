@@ -1,8 +1,10 @@
 import { IsEmail, IsStrongPassword } from 'class-validator';
+import { Message } from 'src/messages/entities/message.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -40,4 +42,10 @@ export class Person {
 
   @UpdateDateColumn()
   updatedAt?: Date;
+
+  @OneToMany(() => Message, message => message.from)
+  sendMessages: Message[];
+
+  @OneToMany(() => Message, message => message.to)
+  receivedMessage: Message[];
 }
